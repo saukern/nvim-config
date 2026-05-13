@@ -7,21 +7,22 @@ return {
 			"hrsh7th/cmp-nvim-lsp",
 		},
 		config = function()
-			-- 1. Mason para gestionar las instalaciones físicas
+			local mis_servidores = {
+				"lua_ls",
+				"clangd",
+				"jdtls",
+				"ts_ls",
+				"cssls",
+				"html",
+				"jsonls",
+				"emmet_ls",
+			}
+
 			require("mason").setup()
 			require("mason-lspconfig").setup({
-				ensure_installed = {
-					"lua_ls",
-					"clangd",
-					"jdtls",
-					"ts_ls",
-					"cssls",
-					"html",
-					"jsonls",
-				},
+				ensure_installed = mis_servidores,
 			})
 
-			-- 2. Configuración estética de diagnósticos
 			vim.diagnostic.config({
 				virtual_text = true,
 				severity_sort = true,
@@ -36,7 +37,6 @@ return {
 				},
 			})
 
-			-- 3. Autocomando para Keymaps y AUTO-FORMATO
 			vim.api.nvim_create_autocmd("LspAttach", {
 				callback = function(args)
 					local client = vim.lsp.get_client_by_id(args.data.client_id)
@@ -45,15 +45,12 @@ return {
 						vim.keymap.set(mode, lhs, rhs, { buffer = buf, silent = true })
 					end
 
-					-- Atajos de teclado
 					map("n", "K", vim.lsp.buf.hover)
 					map("n", "gd", vim.lsp.buf.definition)
 					map("n", "gl", vim.diagnostic.open_float)
 					map("n", "<F4>", vim.lsp.buf.code_action)
 					map("n", "<leader>rn", vim.lsp.buf.rename)
-
-					-- === BLOQUE DE AUTO-FORMATEO AL GUARDAR ===
-					if client and client.supports_method("textDocument/formatting") then
+					if client and client.server_capabilities.documentFormattingProvider then
 						vim.api.nvim_create_autocmd("BufWritePre", {
 							buffer = buf,
 							callback = function()
@@ -64,10 +61,8 @@ return {
 				end,
 			})
 
-			-- 4. NUEVA API 0.11: Configuración de servidores
 			local caps = require("cmp_nvim_lsp").default_capabilities()
 
-			-- Configuración de Lua (Quitando el error de 'undefined global vim')
 			vim.lsp.config("lua_ls", {
 				cmd = { "lua-language-server" },
 				filetypes = { "lua" },
@@ -80,7 +75,6 @@ return {
 				},
 			})
 
-			-- Configuración de C/C++ (Clangd)
 			vim.lsp.config("clangd", {
 				cmd = {
 					"clangd",
@@ -90,13 +84,12 @@ return {
 				capabilities = caps,
 			})
 
-			-- Configuración de otros servidores
-			local servers = { "jdtls", "ts_ls", "cssls", "html", "jsonls" }
-			for _, name in ipairs(servers) do
-				vim.lsp.config(name, { capabilities = caps })
+			for _, name in ipairs(mis_servidores) do
+				if name ~= "lua_ls" and name ~= "clangd" then
+					vim.lsp.config(name, { capabilities = caps })
+				end
 			end
 
-			-- ACTIVACIÓN FINAL
 			for name, _ in pairs(vim.lsp.config._configs) do
 				if name ~= "*" then
 					vim.lsp.enable(name)
