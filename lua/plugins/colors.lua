@@ -13,7 +13,7 @@ end
 
 return {
 	{
-		"shaunsingh/nord.nvim",
+		"haunsingh/nord.nvim",
 		lazy = false,
 		priority = 1000,
 		config = function()

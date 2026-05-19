@@ -27,7 +27,7 @@ return {
 				virtual_text = true,
 				severity_sort = true,
 				float = { border = "rounded", style = "minimal" },
-				signs = {
+				igns = {
 					text = {
 						[vim.diagnostic.severity.ERROR] = "✘",
 						[vim.diagnostic.severity.WARN] = "▲",
@@ -55,6 +55,13 @@ return {
 							buffer = buf,
 							callback = function()
 								vim.lsp.buf.format({ bufnr = buf, id = client.id, timeout_ms = 2000 })
+
+								if client.name == "jdtls" then
+									vim.lsp.buf.execute_command({
+										command = "java.action.organizeImports",
+										arguments = { vim.api.nvim_buf_get_name(buf) },
+									})
+								end
 							end,
 						})
 					end
@@ -84,8 +91,37 @@ return {
 				capabilities = caps,
 			})
 
+			vim.lsp.config("jdtls", {
+				capabilities = caps,
+
+				init_options = {
+					bundles = require("spring_boot").java_extensions(),
+				},
+
+				settings = {
+					java = {
+						configuration = {
+							runtimes = {
+								{
+									name = "JavaSE-25",
+									path = "/usr/lib/jvm/java-25-openjdk-amd64",
+								},
+							},
+						},
+						eclipse = { downloadSources = true },
+						maven = { downloadSources = true },
+						inlayHints = {
+							parameterNames = { enabled = "all" },
+						},
+						completion = {
+							importOrder = { "java", "javax", "com", "org" },
+						},
+						signatureHelp = { enabled = true },
+					},
+				},
+			})
 			for _, name in ipairs(mis_servidores) do
-				if name ~= "lua_ls" and name ~= "clangd" then
+				if name ~= "lua_ls" and name ~= "clangd" and name ~= "jdtls" then
 					vim.lsp.config(name, { capabilities = caps })
 				end
 			end

@@ -27,6 +27,7 @@ return {
 					"javascript",
 					"typescript",
 					"tsx",
+					"sql",
 				},
 				sync_install = false,
 				auto_install = true,
